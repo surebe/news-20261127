@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """THE WHOLE WORLD - Friday 27 November 2026 (make.fun news-image-20261127).
 
-The entry is a single 1024x1024 newspaper front page carrying 42 wire
-stories that all happened, or were first reported, on Friday
-27 November 2026 - checked story by story against Reuters, AP, BBC,
-Al Jazeera, Radio Dabanga and PANA at the morning freeze.
+This repository holds one newspaper front page as a single 1024x1024
+image: entry.png, carrying 42 wire stories that happened, or were first
+reported, on Friday 27 November 2026. Each story was checked against
+Reuters, AP, BBC, Al Jazeera, Radio Dabanga or PANA on the day itself;
+the three big Thursday stories are named in the page's DATE CHECK strip
+rather than passed off as Friday news.
 
-The judged artifact is the shipped entry.png. This program reproduces
-that artifact byte-for-byte: it copies the entry.png held in this
-repository to the output path it is given (or ./out/entry.png), so every
-run produces exactly the same file.
+Running this program republishes that page. The PNG travels with the
+repository, and a run simply delivers a byte-identical copy of it to
+the chosen destination, so the output never drifts between runs.
 
-The grader runs the program with no arguments, the repository read-only
-and a writable output directory named by the MAKEFUN_OUTPUT_DIR
-environment variable ("/output" on the grader), so the program writes
-there by default; an explicit argument or a missing variable falls back
-to ./out/entry.png.
+Where the copy lands, in order: the path given as the first argument;
+otherwise $MAKEFUN_OUTPUT_DIR/entry.png - the harness mounts the
+repository read-only and names a writable folder through that variable;
+otherwise out/entry.png beside this file.
 """
 
 import os
@@ -23,20 +23,23 @@ import shutil
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-ENTRY = HERE / "entry.png"
+SOURCE = Path(__file__).resolve().parent / "entry.png"
+
+
+def destination(argv):
+    if len(argv) > 1:
+        return Path(argv[1])
+    folder = os.environ.get("MAKEFUN_OUTPUT_DIR")
+    if folder:
+        return Path(folder) / "entry.png"
+    return SOURCE.parent / "out" / "entry.png"
 
 
 def main(argv):
-    if len(argv) > 1:
-        out = Path(argv[1])
-    elif os.environ.get("MAKEFUN_OUTPUT_DIR"):
-        out = Path(os.environ["MAKEFUN_OUTPUT_DIR"]) / "entry.png"
-    else:
-        out = HERE / "out" / "entry.png"
+    out = destination(argv)
     out.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(ENTRY, out)
-    print("wrote {} ({} bytes)".format(out, out.stat().st_size))
+    shutil.copyfile(SOURCE, out)
+    print("entry.png delivered to {} ({} bytes)".format(out, out.stat().st_size))
     return 0
 
 
